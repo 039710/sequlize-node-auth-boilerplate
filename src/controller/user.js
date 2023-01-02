@@ -1,6 +1,7 @@
 const { user } = require('../app/models');
 const fs = require('fs');
 const generateJWT = require('../helpers/generateJWT');
+const bcrypt = require('bcrypt');
 class UserController{
   // static function
   static async index(req, res,next){
@@ -59,6 +60,22 @@ class UserController{
             }
           })
       }
+      next(error);
+    }
+  }
+
+  static async resetPassword(req,res,next){
+    try {
+      const { email, password } = req.body;
+      const data = await user.findOne({
+        where: { email },
+        plain: true,
+      });
+      if(!data) throw new Error('Email or password is wrong');
+      data.password = bcrypt.hashSync(password, 7);
+      await data.save();
+      res.json(data);
+    } catch (error) {
       next(error);
     }
   }
